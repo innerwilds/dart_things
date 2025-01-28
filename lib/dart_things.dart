@@ -1,5 +1,6 @@
 library dart_things;
 
+import 'dart:math';
 import 'package:characters/characters.dart';
 
 final newLineRegExp = RegExp('\r?\n');
@@ -121,6 +122,7 @@ String trimItself(String self) => self.trim();
 String trimLeftItself(String self) => self.trimLeft();
 String trimRightItself(String self) => self.trimRight();
 
+
 extension ColliseumIterable<E> on Iterable<E> {
   static bool defaultEquals(dynamic a, dynamic b) {
     return a == b;
@@ -237,6 +239,10 @@ extension ColliseumString<C extends String> on C {
       return string.characters.last.toUpperCase();
     }).replaceFirstMapped(firstLetter, (match) => match.group(0)!.toLowerCase())
       .replaceAll(badEnd, '');
+  }
+
+  String safeEndSubstring(int start, [int? end]) {
+    return substring(start, end == null ? null : min(end, length));
   }
 }
 
