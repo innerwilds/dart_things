@@ -4,6 +4,9 @@ import 'package:characters/characters.dart';
 
 final newLineRegExp = RegExp('\r?\n');
 
+/// A result of something of type [T].
+///
+/// Initially we can have no data or 
 sealed class Result<T> {
   const factory Result([T? data]) = SuccessResult;
   const factory Result.error(Object error) = ErrorResult;
@@ -15,12 +18,6 @@ sealed class Result<T> {
   /// Holds an data of [T].
   ///
   /// The [NoResult] throws an error when using this property.
-  ///
-  /// When we need to load some data, when existing one is in a [DataResult],
-  /// we call, where we transform [DataResult] into [PendingResult] with [DataResult.data].
-  /// ```dart
-  /// data.pending();
-  /// ```
   T? get data;
 }
 
@@ -119,6 +116,10 @@ extension ResultExtensions<T> on Result<T> {
 
 T itself<T>(T self) => self;
 String itselfToString<T>(T self) => self.toString();
+
+String trimItself(String self) => self.trim();
+String trimLeftItself(String self) => self.trimLeft();
+String trimRightItself(String self) => self.trimRight();
 
 extension ColliseumIterable<E> on Iterable<E> {
   static bool defaultEquals(dynamic a, dynamic b) {
