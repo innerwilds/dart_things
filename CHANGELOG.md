@@ -8,3 +8,6 @@ trimRightItself(String) was added
 
 # 0.0.3
 String.safeEndSubstring(start, [end?]) was added
+
+# 0.0.4
+Iterable.equals fix

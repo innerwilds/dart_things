@@ -154,6 +154,7 @@ extension ColliseumIterable<E> on Iterable<E> {
         if (!equals(iter1Value, iter2Value)) {
           return false;
         }
+        continue;
       }
 
       // both are false
@@ -244,8 +245,4 @@ extension ColliseumString<C extends String> on C {
   String safeEndSubstring(int start, [int? end]) {
     return substring(start, end == null ? null : min(end, length));
   }
-}
-
-void main() {
-  print('Hello, Santiago! How are you? Are you 28 years old? Ya-Yo!'.toLowerCamelCase());
 }
