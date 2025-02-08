@@ -1,6 +1,6 @@
 name: dart_things
 description: Useful dart things. Yep. Yeah. Yes.
-version: 0.0.4
+version: 0.0.5
 
 environment:
   sdk: ^3.5.4

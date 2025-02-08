@@ -6,8 +6,6 @@ import 'package:characters/characters.dart';
 final newLineRegExp = RegExp('\r?\n');
 
 /// A result of something of type [T].
-///
-/// Initially we can have no data or 
 sealed class Result<T> {
   const factory Result([T? data]) = SuccessResult;
   const factory Result.error(Object error) = ErrorResult;
@@ -123,7 +121,7 @@ String trimLeftItself(String self) => self.trimLeft();
 String trimRightItself(String self) => self.trimRight();
 
 
-extension ColliseumIterable<E> on Iterable<E> {
+extension DartThingsIterableExtension<E> on Iterable<E> {
   static bool defaultEquals(dynamic a, dynamic b) {
     return a == b;
   }
@@ -177,12 +175,45 @@ extension ColliseumIterable<E> on Iterable<E> {
   }
 }
 
-extension ColliseumList<T> on List<T> {
+extension DartThingsListExtension<T> on List<T> {
+  /// [map]s this to a not growable list.
   List<C> mapToReadOnlyList<C>(C Function(T) mapper) =>
-      map(mapper).toList(growable: false);
+    map(mapper).toList(growable: false);
+  
+  /// Regenerates a list to have provided [newLength].
+  /// 
+  /// If current [length] is greather than [newLength] we remove last ones to match new length. 
+  /// Removed elements can be handled by [onRemove].
+  /// If current [length] is lower than [newLength] we [generate] new ones to match new length.
+  /// Matched lengths does nothing.
+  void regenerate({
+    required int newLength,
+    required T Function(int) generate,
+    void Function(T)? onRemove,
+  }) {
+    assert(newLength >= 0, "new length can't be lower than 0");
+    
+    final diff = length - newLength;
+
+    if (diff == 0) return;
+
+    if (diff > 0) {
+      final toRemove = sublist(newLength);
+      length = newLength;
+      if (onRemove != null) {
+        for (var removedItem in toRemove) {
+          onRemove(removedItem);
+        }
+      }
+    } else {
+      for (var i = 0; i > diff; i--) {
+        add(generate(length - i));
+      }
+    }
+  }
 }
 
-extension ColliseumSet<T> on Set<T> {
+extension DartThingsSetExtension<T> on Set<T> {
   bool equalsTo(Set<T>? b) {
     if (b == null || length != b.length) {
       return false;
@@ -196,6 +227,36 @@ extension ColliseumSet<T> on Set<T> {
       }
     }
     return true;
+  }
+
+  /// Regenerates a set to have provided [newLength].
+  /// 
+  /// If current [length] is greather than [newLength] we remove last ones to match new length. 
+  /// Removed elements can be handled by [onRemove].
+  /// If current [length] is lower than [newLength] we [generate] new ones to match new length.
+  /// Matched lengths does nothing.
+  void regenerate({
+    required int newLength,
+    required T Function(int) generate,
+    void Function(T)? onRemove,
+  }) {
+    assert(newLength >= 0, "new length can't be lower than 0");
+
+    final diff = length - newLength;
+
+    if (diff == 0) return;
+
+    if (diff > 0) {
+      while (length > newLength) {
+        final removedElement = first;
+        remove(removedElement);
+        onRemove?.call(removedElement);
+      }
+    } else {
+      for (var i = 0; i > diff; i--) {
+        add(generate(length - i));
+      }
+    }
   }
 }
 
