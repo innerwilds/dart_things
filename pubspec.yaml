@@ -1,6 +1,6 @@
 name: dart_things
-description: Useful dart things. Yep. Yeah. Yes.
-version: 0.0.5
+description: Drink more water, drink less beer to beat a bear.
+version: 0.0.6
 
 environment:
   sdk: ^3.5.4

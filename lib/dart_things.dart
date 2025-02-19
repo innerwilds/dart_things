@@ -119,6 +119,11 @@ String itselfToString<T>(T self) => self.toString();
 String trimItself(String self) => self.trim();
 String trimLeftItself(String self) => self.trimLeft();
 String trimRightItself(String self) => self.trimRight();
+String lowerItself(String self) => self.toLowerCase();
+String upperItself(String self) => self.toUpperCase();
+bool itIsNotEmpty<T extends dynamic>(T self) => self.length != 0;
+bool itIsEmpty<T extends dynamic>(T self) => self.length == 0;
+bool itIsNotNull<T extends Object?>(T self) => self != null;
 
 
 extension DartThingsIterableExtension<E> on Iterable<E> {
