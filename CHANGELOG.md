@@ -22,3 +22,8 @@ upperItself
 itIsNotEmpty
 itIsEmpty
 itIsNotNull
+
+# 0.1.1
+API changed.
+Added some new things like Initializer, Disposable, StarterStopperAsync.
+Every \*Itself now named itself\* 
