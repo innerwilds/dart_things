@@ -27,3 +27,6 @@ itIsNotNull
 API changed.
 Added some new things like Initializer, Disposable, StarterStopperAsync.
 Every \*Itself now named itself\* 
+
+# 0.1.2
+Fixes and docs
