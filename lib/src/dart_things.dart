@@ -536,12 +536,9 @@ abstract mixin class Initializer {
   @protected
   @mustCallSuper
   FutureOr<void> initialize() {
-    assert(() {
-      if (this case Disposable(checkNotDisposed: final check)) {
-        check();
-      }
-      return true;
-    }());
+    if (this case Disposable(checkNotDisposed: final check)) {
+      check();
+    }
     assert(_doNotAssertInitializing || !_initializing,
         'There is already initialization in progress');
     assert(
@@ -633,7 +630,7 @@ final class StopForceError extends Error {
   }
 }
 
-final class DisposedException extends Exception {
+final class DisposedException implements Exception {
   DisposedException(this.objectName, [this.methodName]);
 
   final String objectName;
