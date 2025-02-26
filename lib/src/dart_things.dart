@@ -15,6 +15,7 @@ import '_foundation.dart';
 RegExp get newLineRegExp => RegExp('\r?\n');
 
 @immutable
+
 /// A result of something of type [T].
 sealed class Result<T> {
   /// {@template Result.Success}
@@ -462,10 +463,11 @@ abstract mixin class Disposable {
 /// [Initializer] also checks itself for extending [Disposable],
 /// and guards [ensureInitialized] and [initialize].
 abstract mixin class Initializer {
-  final Completer<void> _completer = Completer<void>();
+  Completer<void>? _completer;
 
   bool _initializing = false;
   bool _initialized = false;
+  bool _doNotAssertInitializing = false;
 
   String get _className => describeIdentity(this);
 
@@ -487,30 +489,55 @@ abstract mixin class Initializer {
       return true;
     }());
 
-    if (_completer.isCompleted) {
+    if (_completer?.isCompleted ?? false) {
       return;
     }
 
     if (_initializing) {
-      return _completer.future;
+      return _completer!.future;
+    }
+    
+    bool resetDoNotAssert() {
+      _doNotAssertInitializing = false;
+      return true;
     }
 
-    _initializing = true;
+    _completer = Completer<void>();
+    assert(() {
+      _doNotAssertInitializing = true;
+      return true;
+    }());
 
     try {
+      _initializing = true;
       await initialize();
+      assert(resetDoNotAssert());
       _initialized = true;
-      _completer.complete();
+      _completer!.complete();
     } catch (e) {
       _initialized = false;
-      _completer.completeError(e);
+      _completer!.completeError(e);
+      _completer = null;
       rethrow;
     } finally {
+      assert(resetDoNotAssert());
       _initializing = false;
     }
   }
 
   /// Initialize something here.
+  ///
+  /// Will throw if there s already initialization in progress,
+  /// or it was initialized using [ensureInitialized].
+  ///
+  /// There can be multiple [initialize] calls, but with awaiting completion of
+  /// previous ones.
+  ///
+  /// To use it safely use [ensureInitialized].
+  ///
+  /// For protected use only.
+  /// Must be not called directly from outside of an inheritor.
+  /// The behaviour on external call is unknown.
   @protected
   @mustCallSuper
   FutureOr<void> initialize() {
@@ -520,10 +547,12 @@ abstract mixin class Initializer {
       }
       return true;
     }());
-    assert(!_initialized,
-      '$_className has been initialized already. '
-      'Use .ensureInitialized to initialize it safely.'
-    );
+    assert(_doNotAssertInitializing || !_initializing,
+        'There is already initialization in progress');
+    assert(
+        !_initialized,
+        '$_className has been initialized already. '
+        'Use .ensureInitialized to initialize it safely.');
   }
 
   /// Check whether this has been initialized.
@@ -533,7 +562,8 @@ abstract mixin class Initializer {
   /// Return true for use within [assert] statement.
   @protected
   bool checkInitialized() {
-    assert(_initialized,
+    assert(
+        _initialized,
         '$_className has not been initialized. '
         'Use ${describeIdentity(this)}.ensureInitialized.');
     return true;
