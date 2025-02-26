@@ -54,7 +54,7 @@ sealed class Result<T> {
 
   /// Constant of [NoResult].
   /// Data will be null always.
-  static const no = NoResult;
+  static const NoResult no = NoResult();
 
   /// Holds an data of [T].
   ///
@@ -435,17 +435,12 @@ abstract mixin class Disposable {
     _disposed = true;
   }
 
-  /// Used to diagnose methods usage for [Disposable] classes.
-  ///
-  /// It throws [AssertionError] if [Disposable] was disposed.
-  ///
-  /// Returns true to use within assert(), so it will be not included in release.
+  /// It throws [DisposedError] if this was disposed.
   @protected
-  bool checkNotDisposed([String? methodName]) {
-    final cantUse = methodName == null ? '' : "Can't use $methodName. ";
-    assert(
-        !_disposed, '${cantUse}Object ${describeIdentity(this)} was disposed.');
-    return true;
+  void checkNotDisposed([String? methodName]) {
+    if (_disposed) {
+      throw DisposedError(describeIdentity(this), methodName);
+    }
   }
 }
 
@@ -496,7 +491,7 @@ abstract mixin class Initializer {
     if (_initializing) {
       return _completer!.future;
     }
-    
+
     bool resetDoNotAssert() {
       _doNotAssertInitializing = false;
       return true;
@@ -612,7 +607,8 @@ abstract mixin class StarterStopperAsync {
   }) {
     assert(_completer != null, 'Not started to be stopped');
     if (force) {
-      _completer!.completeError(StopForceError._(forceReason));
+      _completer!
+          .completeError(StopForceError._(describeIdentity(this), forceReason));
     } else {
       _completer!.complete();
     }
@@ -623,8 +619,29 @@ abstract mixin class StarterStopperAsync {
 /// Stop was forced.
 final class StopForceError extends Error {
   /// Main ctor.
-  StopForceError._(this.reason);
+  StopForceError._(this.objectName, this.reason);
+
+  /// Object name or <optimized_out>#hash
+  final String objectName;
 
   /// Reason of why stop is force.
   final String? reason;
+
+  @override
+  String toString() {
+    return '$objectName was stopped with force due to reason: $reason';
+  }
+}
+
+final class DisposedError extends Error {
+  DisposedError(this.objectName, [this.methodName]);
+
+  final String objectName;
+  final String? methodName;
+
+  @override
+  String toString() {
+    final cantUse = methodName == null ? '' : "Can't use $methodName. ";
+    return '$cantUse${describeIdentity(this)} was disposed.';
+  }
 }

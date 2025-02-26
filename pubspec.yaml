@@ -1,6 +1,6 @@
 name: dart_things
 description: Drink more water, drink less beer to beat a bear.
-version: 0.1.2
+version: 0.2.2
 
 environment:
   sdk: ^3.5.4
