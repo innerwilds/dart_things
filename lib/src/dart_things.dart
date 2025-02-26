@@ -435,11 +435,11 @@ abstract mixin class Disposable {
     _disposed = true;
   }
 
-  /// It throws [DisposedError] if this was disposed.
+  /// It throws [DisposedException] if this was disposed.
   @protected
   void checkNotDisposed([String? methodName]) {
     if (_disposed) {
-      throw DisposedError(describeIdentity(this), methodName);
+      throw DisposedException(describeIdentity(this), methodName);
     }
   }
 }
@@ -633,8 +633,8 @@ final class StopForceError extends Error {
   }
 }
 
-final class DisposedError extends Error {
-  DisposedError(this.objectName, [this.methodName]);
+final class DisposedException extends Exception {
+  DisposedException(this.objectName, [this.methodName]);
 
   final String objectName;
   final String? methodName;
