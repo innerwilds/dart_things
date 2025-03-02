@@ -36,3 +36,6 @@ docs are added, api changed
 
 # 0.4.2
 Example was added
+
+# 0.4.3
+Example was updated
