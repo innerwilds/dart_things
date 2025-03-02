@@ -30,3 +30,6 @@ Every \*Itself now named itself\*
 
 # 0.1.2
 Fixes and docs
+
+# 0.4.1
+docs are added, api changed

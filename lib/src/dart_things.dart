@@ -1,15 +1,12 @@
 /// Dart things I miss in Dart.
-///
-/// It is not related to Flutter.
 library;
 
 import 'dart:async';
 import 'dart:math';
 
 import 'package:characters/characters.dart';
+import 'package:dart_things/src/_foundation.dart';
 import 'package:meta/meta.dart';
-
-import '_foundation.dart';
 
 /// Just a new line regex. Handles CRLF and LF.
 RegExp get newLineRegExp => RegExp('\r?\n');
@@ -54,7 +51,7 @@ sealed class Result<T> {
 
   /// Constant of [NoResult].
   /// Data will be null always.
-  static const NoResult no = NoResult();
+  const factory Result.no() = NoResult;
 
   /// Holds an data of [T].
   ///
@@ -62,10 +59,16 @@ sealed class Result<T> {
   T? get data;
 }
 
+/// Error result means 'Something operation failed'.
 final class ErrorResult<T> implements Result<T> {
-  const ErrorResult(this.error, [this.data]);
+  /// Main ctor.
+  const ErrorResult(this.error, [this.data, this.stacktrace]);
 
+  /// Error.
   final Object error;
+
+  /// Stacktrace of an [error].
+  final StackTrace? stacktrace;
 
   @override
   final T? data;
@@ -101,7 +104,12 @@ final class SuccessResult<T> implements Result<T> {
   }
 }
 
+/// Just a value of [data].
+///
+/// If [data] is null, it means a data is present and must be treated
+/// as present.
 final class ValueResult<T> implements Result<T> {
+  /// Main ctor.
   const ValueResult([this.data]);
 
   @override
@@ -116,7 +124,11 @@ final class ValueResult<T> implements Result<T> {
   }
 }
 
+/// Means 'there was a result with data, but now that data is modified'.
+///
+/// I don't find any useful case for this, but it will be here.
 final class ModifiedResult<T> implements Result<T> {
+  /// Main ctor.
   const ModifiedResult([this.data]);
 
   @override
@@ -131,7 +143,12 @@ final class ModifiedResult<T> implements Result<T> {
   }
 }
 
+/// Means 'there is no result for an operation'.
+///
+/// In dev meaning, it is useful when we create a widget without user-action
+/// made before, which will produce a result only in future.
 final class NoResult<T> implements Result<T> {
+  /// Main ctor.
   const NoResult();
 
   @override
@@ -152,6 +169,7 @@ final class NoResult<T> implements Result<T> {
 /// It is not 'promise'. It says "okay i understand you, but the operation will be
 /// or not made in the future relative to some policy"
 final class PendingResult<T> implements Result<T> {
+  /// Main ctor.
   const PendingResult([this.data]);
 
   @override
@@ -166,10 +184,15 @@ final class PendingResult<T> implements Result<T> {
   }
 }
 
-extension ResultExtensions<T> on Result<T> {
+/// Useful things on [Result].
+extension ColiseumResult<T> on Result<T> {
+  /// This to pending, saving current [data].
   PendingResult<T> asPending() => PendingResult(data);
+  /// This to success, saving current [data].
   SuccessResult<T> asSuccess() => SuccessResult(data);
+  /// This to success with [data] or null.
   SuccessResult<T> asSuccessWithData([T? data]) => SuccessResult(data);
+  /// This to [ErrorResult] with error [e] and current data.
   ErrorResult<T> asError(Object e) => ErrorResult(e, data);
 }
 
@@ -177,7 +200,7 @@ extension ResultExtensions<T> on Result<T> {
 ///
 /// Cases: (add some later)
 /// ```dart
-/// listOfListOfString.expand(itself);
+/// Stream<int> ints = Stream<List<int>>().expand(itself);
 /// ```
 T itself<T>(T self) => self;
 
@@ -189,20 +212,43 @@ T itself<T>(T self) => self;
 /// ```
 String itselfToString<T>(T self) => self.toString();
 
+/// Self trim.
+///
+/// When I first trim my own hair, I had to trim my hair bald...
 String itselfTrim(String self) => self.trim();
+
+/// Self trim left.
 String itselfTrimLeft(String self) => self.trimLeft();
+
+/// Self trim right.
 String itselfTrimRight(String self) => self.trimRight();
+
+/// Self to lower case.
 String itselfLower(String self) => self.toLowerCase();
+
+/// Self to upper case.
 String itselfUpper(String self) => self.toUpperCase();
+
+/// Self is not empty.
+///
+/// Works on anything with length property.
 bool itselfNotEmpty<T extends dynamic>(T self) => self.length != 0;
+
+/// Self is empty.
+///
+/// Works on anything with length property.
 bool itselfEmpty<T extends dynamic>(T self) => self.length == 0;
+
+/// Self is not null.
 bool itselfNotNull<T extends Object?>(T self) => self != null;
 
-extension DartThingsIterableExtension<E> on Iterable<E> {
-  static bool defaultEquals(dynamic a, dynamic b) {
+/// Useful things on [Iterable].
+extension ColiseumIterable<E> on Iterable<E> {
+  static bool _defaultEquals(dynamic a, dynamic b) {
     return a == b;
   }
 
+  /// This iterable with [end] at the end.
   Iterable<E> withEnd(E end) sync* {
     for (final e in this) {
       yield e;
@@ -210,6 +256,7 @@ extension DartThingsIterableExtension<E> on Iterable<E> {
     yield end;
   }
 
+  /// This iterable with [start] at the start.
   Iterable<E> withStart(E start) sync* {
     yield start;
     for (final e in this) {
@@ -217,6 +264,7 @@ extension DartThingsIterableExtension<E> on Iterable<E> {
     }
   }
 
+  /// This iterable without [something].
   Iterable<E> without(E something) sync* {
     for (final e in this) {
       if (something == e) continue;
@@ -224,12 +272,21 @@ extension DartThingsIterableExtension<E> on Iterable<E> {
     }
   }
 
-  /// Whether [other] has the same elements as this iterable.
-  ///
-  /// Returns true if [other] has the same iterable items
-  /// according to an [equals].
+  /// Whether [other] has the same elements as this iterable in order
+  /// they are moved, and their length is the same.
+  /// 
+  /// [1,2,3,4] will match [1,2,3,4]
+  /// but [4,1,2,1] will not match [1,1,2,4].
+  /// [1,2,3,4] will not match [1,2,3]
+  /// [1,2,3,] will not match [1,2,3,4].
+  /// 
+  /// So this matches identical iterables in meaning of their values, not a link
+  /// in memory.
+  /// 
+  /// If you need zero-difference, convert them to set and use 
+  /// [ColiseumSet.equalsTo].
   bool equals(Iterable<E>? other,
-      [bool Function(E, E) equals = defaultEquals]) {
+      [bool Function(E, E) equals = _defaultEquals]) {
     if (other == null) {
       return false;
     }
@@ -274,16 +331,19 @@ extension DartThingsIterableExtension<E> on Iterable<E> {
   }
 }
 
-extension DartThingsListExtension<T> on List<T> {
+/// Useful things on [List].
+extension ColiseumList<T> on List<T> {
   /// [map]s this to a not growable list.
   List<C> mapToReadOnlyList<C>(C Function(T) mapper) =>
       map(mapper).toList(growable: false);
 
   /// Regenerates a list to have provided [newLength].
   ///
-  /// If current [length] is greather than [newLength] we remove last ones to match new length.
+  /// If current [length] is greather than [newLength] we remove last ones
+  /// to match new length.
   /// Removed elements can be handled by [onRemove].
-  /// If current [length] is lower than [newLength] we [generate] new ones to match new length.
+  /// If current [length] is lower than [newLength] we [generate] new ones
+  /// to match new length.
   /// Matched lengths does nothing.
   void regenerate({
     required int newLength,
@@ -300,7 +360,7 @@ extension DartThingsListExtension<T> on List<T> {
       final toRemove = sublist(newLength);
       length = newLength;
       if (onRemove != null) {
-        for (var removedItem in toRemove) {
+        for (final removedItem in toRemove) {
           onRemove(removedItem);
         }
       }
@@ -312,16 +372,18 @@ extension DartThingsListExtension<T> on List<T> {
   }
 }
 
-extension DartThingsSetExtension<T> on Set<T> {
-  bool equalsTo(Set<T>? b) {
-    if (b == null || length != b.length) {
+/// Useful things on [Set].
+extension ColiseumSet<T> on Set<T> {
+  /// Whether current set equals to [other].
+  bool equalsTo(Set<T>? other) {
+    if (other == null || length != other.length) {
       return false;
     }
-    if (identical(this, b)) {
+    if (identical(this, other)) {
       return true;
     }
-    for (final T value in this) {
-      if (!b.contains(value)) {
+    for (final value in this) {
+      if (!other.contains(value)) {
         return false;
       }
     }
@@ -330,10 +392,13 @@ extension DartThingsSetExtension<T> on Set<T> {
 
   /// Regenerates a set to have provided [newLength].
   ///
-  /// If current [length] is greather than [newLength] we remove last ones to match new length.
+  /// If current [length] is greater than [newLength] it will remove last ones
+  /// to match new length.
   /// Removed elements can be handled by [onRemove].
-  /// If current [length] is lower than [newLength] we [generate] new ones to match new length.
-  /// Matched lengths does nothing.
+  /// If current [length] is lower than [newLength] we [generate] new ones
+  /// to match new length.
+  ///
+  /// If length matches current, does nothing.
   void regenerate({
     required int newLength,
     required T Function(int) generate,
@@ -359,13 +424,17 @@ extension DartThingsSetExtension<T> on Set<T> {
   }
 }
 
-extension ColliseumObject<C extends Object> on C {
+/// Kotlin-like useful things, if you love long-stacktrace.
+extension ColiseumObject<C extends Object> on C {
+  /// Executes [block] with this as argument.
+  /// Returns what [block] returns.
   T let<T>(T Function(C) block) {
     return block(this);
   }
 }
 
-extension ColliseumString<C extends String> on C {
+/// String useful things.
+extension ColiseumString on String {
   static final _wordCharacterClasses = <String>{
     'Letter',
     'Mark',
@@ -379,21 +448,17 @@ extension ColliseumString<C extends String> on C {
   /// But string hellosantiagohowareyou becomes itself, because no word
   /// separation present.
   String toLowerCamelCase() {
-    final classes =
-        _wordCharacterClasses.map((clas) => r'\p{' '$clas}').join('');
+    final classes = _wordCharacterClasses.map((clas) => r'\p{' '$clas}').join();
     final nonLetterManyThenOneLetter = RegExp(
-      r'[^' '$classes]+[$classes]',
+      '[^' '$classes]+[$classes]',
       unicode: true,
-      caseSensitive: true,
     );
     final firstLetter = RegExp(
-      r'^[' '$classes]{1}',
-      caseSensitive: true,
+      '^[ $classes]{1}',
       unicode: true,
     );
     final badEnd = RegExp(
-      r'[^' '$classes' r']$',
-      caseSensitive: true,
+      '[^ $classes' r']$',
       unicode: true,
     );
 
@@ -407,6 +472,10 @@ extension ColliseumString<C extends String> on C {
         .replaceAll(badEnd, '');
   }
 
+  /// Substring with safe end, so if end will be greater than [length],
+  /// it will not throw.
+  ///
+  /// Start is not safe.
   String safeEndSubstring(int start, [int? end]) {
     return substring(start, end == null ? null : min(end, length));
   }
@@ -472,18 +541,11 @@ abstract mixin class Initializer {
   /// returns future of it's ending.
   ///
   /// If [initialize] in it throws, then object is means to be uninitialized,
-  /// and this method can be called again to try initialize it again.
+  /// and this method can be called again.
   /// The error of [initialize] will caught and rethrow.
   ///
   /// Returns future of initialization ending or nothing if initialized.
   FutureOr<void> ensureInitialized() async {
-    assert(() {
-      if (this case Disposable(checkNotDisposed: final check)) {
-        check();
-      }
-      return true;
-    }());
-
     if (_completer?.isCompleted ?? false) {
       return;
     }
@@ -536,9 +598,6 @@ abstract mixin class Initializer {
   @protected
   @mustCallSuper
   FutureOr<void> initialize() {
-    if (this case Disposable(checkNotDisposed: final check)) {
-      check();
-    }
     assert(_doNotAssertInitializing || !_initializing,
         'There is already initialization in progress');
     assert(
@@ -566,13 +625,11 @@ abstract mixin class Initializer {
 /// start and stop something.
 ///
 /// The [stop] should gratefully stop something when force is false.
-///
-/// Add checks for start and stop for already started.
 abstract mixin class StarterStopperAsync {
-  Completer<void>? _completer;
+  Completer<void>? _starterCompleter;
 
-  /// Is something was started?
-  bool get isRunning => _completer != null;
+  /// Is some operation is running now?
+  bool get isRunning => _starterCompleter != null;
 
   /// Starts something.
   ///
@@ -581,15 +638,16 @@ abstract mixin class StarterStopperAsync {
   ///
   /// You can use returned future in your implementation of [start].
   /// The future will throw if stop is forced by setting force to true.
-  /// The error will be [StopForceError].
+  /// The exception will be [StopForcedException].
+  /// If force will be false, future just completes.
+  /// After calling stop [isRunning] becomes false.
   @mustCallSuper
-  @mustBeOverridden
   Future<void> start() {
-    if (_completer != null) {
-      return _completer!.future;
+    if (_starterCompleter != null) {
+      return _starterCompleter!.future;
     }
-    _completer = Completer<void>();
-    return _completer!.future;
+    _starterCompleter = Completer<void>();
+    return _starterCompleter!.future;
   }
 
   /// Stops what was started.
@@ -597,28 +655,31 @@ abstract mixin class StarterStopperAsync {
   /// Provide [forceReason] if [force] is true. There is not assertion for this.
   ///
   /// Override it or use [start] future.
+  ///
+  /// The future returned from [start] will throw if [force] is true.
+  /// The exception will be [StopForcedException].
   @mustCallSuper
   void stop({
     bool force = false,
     String? forceReason,
   }) {
-    assert(_completer != null, 'Not started to be stopped');
+    assert(_starterCompleter != null, 'Not started to be stopped');
     if (force) {
-      _completer!
-          .completeError(StopForceError._(describeIdentity(this), forceReason));
+      _starterCompleter!.completeError(
+          StopForcedException._(describeIdentity(this), forceReason));
     } else {
-      _completer!.complete();
+      _starterCompleter!.complete();
     }
-    _completer = null;
+    _starterCompleter = null;
   }
 }
 
 /// Stop was forced.
-final class StopForceError extends Error {
+final class StopForcedException implements Exception {
   /// Main ctor.
-  StopForceError._(this.objectName, this.reason);
+  StopForcedException._(this.objectName, this.reason);
 
-  /// Object name or <optimized_out>#hash
+  /// Object name or <optimized_out>#hash.
   final String objectName;
 
   /// Reason of why stop is force.
@@ -630,10 +691,18 @@ final class StopForceError extends Error {
   }
 }
 
+/// Thrown when an object was disposed and can't be used anymore.
 final class DisposedException implements Exception {
+  /// Main ctor.
+  ///
+  /// [objectName] is required and for better debugging shouldn't be runtimeType
+  /// toString representation.
   DisposedException(this.objectName, [this.methodName]);
 
+  /// An object name.
   final String objectName;
+
+  /// A method from which this exception was thrown.
   final String? methodName;
 
   @override
