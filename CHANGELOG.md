@@ -39,3 +39,6 @@ Example was added
 
 # 0.4.3
 Example was updated
+
+# 0.5.1
+API changed. StartStopperAsync now returns ReadOnlyCompleter.

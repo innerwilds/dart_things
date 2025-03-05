@@ -1,6 +1,6 @@
 name: dart_things
 description: Drink more water, drink less beer to beat a bear.
-version: 0.4.3
+version: 0.5.1
 repository: https://github.com/innerwilds/dart_things
 
 environment:
