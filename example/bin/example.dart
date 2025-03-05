@@ -22,7 +22,7 @@ void main(List<String> arguments) {
     }
   });
 
-  myInts.start().then((_) {
+  myInts.start().future.then((_) {
     print('Stopped. If the number appears after this line, this is because force was false.');
   }, onError: (_, _) {
     /// suppress StopForcedException.

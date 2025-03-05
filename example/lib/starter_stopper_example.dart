@@ -8,7 +8,7 @@ class MyController extends StarterStopperAsync {
   final StreamController<int> _controller = StreamController();
   Stream<int> get myInts => _controller.stream;
 
-  Future<void>? _futureStop;
+  ReadOnlyCompleter<void>? _futureStop;
 
   Future<void> work() async {
     while (isRunning) {
@@ -18,10 +18,10 @@ class MyController extends StarterStopperAsync {
   }
 
   /// This will produce an [HttpClient.close] related error when it stops with force.
-  Future<int> _getRandomNumberFromInternet(Future<void> interrupter) async {
+  Future<int> _getRandomNumberFromInternet(ReadOnlyCompleter<void> interrupter) async {
     final client = HttpClient();
 
-    interrupter.then(
+    interrupter.future.then(
       (_) {
         // Do nothing, because [isRunning] becomes false.
       },
@@ -61,7 +61,7 @@ class MyController extends StarterStopperAsync {
   }
 
   @override
-  Future<void> start() {
+  ReadOnlyCompleter<void> start() {
     _futureStop = super.start();
     unawaited(work());
     return _futureStop!;

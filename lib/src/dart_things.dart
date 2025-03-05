@@ -621,15 +621,25 @@ abstract mixin class Initializer {
   }
 }
 
+final class ReadOnlyCompleter<T> {
+  ReadOnlyCompleter(this._base);
+
+  final Completer<T> _base;
+
+  Future<T> get future => _base.future;
+
+  bool get isCompleted => _base.isCompleted;
+}
+
 /// As it names says: [start] and [stop] provides a standardized way to
 /// start and stop something.
 ///
 /// The [stop] should gratefully stop something when force is false.
 abstract mixin class StarterStopperAsync {
-  Completer<void>? _starterCompleter;
+  ReadOnlyCompleter<void>? _starterCompleter;
 
   /// Is some operation is running now?
-  bool get isRunning => _starterCompleter != null;
+  bool get isRunning => !(_starterCompleter?.isCompleted ?? true);
 
   /// Starts something.
   ///
@@ -642,12 +652,13 @@ abstract mixin class StarterStopperAsync {
   /// If force will be false, future just completes.
   /// After calling stop [isRunning] becomes false.
   @mustCallSuper
-  Future<void> start() {
+  ReadOnlyCompleter<void> start() {
     if (_starterCompleter != null) {
-      return _starterCompleter!.future;
+      return _starterCompleter!;
     }
-    _starterCompleter = Completer<void>();
-    return _starterCompleter!.future;
+    final completer = Completer<void>();
+    _starterCompleter = ReadOnlyCompleter<void>(completer);
+    return _starterCompleter!;
   }
 
   /// Stops what was started.
@@ -665,10 +676,10 @@ abstract mixin class StarterStopperAsync {
   }) {
     assert(_starterCompleter != null, 'Not started to be stopped');
     if (force) {
-      _starterCompleter!.completeError(
+      _starterCompleter!._base.completeError(
           StopForcedException._(describeIdentity(this), forceReason));
     } else {
-      _starterCompleter!.complete();
+      _starterCompleter!._base.complete();
     }
     _starterCompleter = null;
   }
