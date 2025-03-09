@@ -6,12 +6,12 @@ import '_foundation.dart';
 
 /// Something disposable.
 ///
-/// Provides protected [checkNotDisposed].
+/// Use [CheckedDisposableMixin] for [CheckedDisposableMixin.checkNotDisposed].
 ///
 /// Doesn't checks itself for [Initializer],
 /// because there is a cases when something disposable can be initialized in
 /// ctor.
-abstract mixin class Disposable {
+abstract class Disposable {
   bool _disposed = false;
 
   /// Disposes object.
@@ -22,12 +22,15 @@ abstract mixin class Disposable {
   /// ```dart
   /// assert(checkNotDisposed('methodName'));
   /// ```
-  @mustCallSuper
   void dispose() {
     _disposed = true;
   }
+}
 
+mixin CheckedDisposableMixin on Disposable {
   /// It throws [DisposedException] if this was disposed.
+  ///
+  /// [DisposedException] will be with [methodName] if it is not null.
   @protected
   void checkNotDisposed([String? methodName]) {
     if (_disposed) {
