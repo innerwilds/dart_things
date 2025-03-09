@@ -49,3 +49,6 @@ Refactoring
 # 0.6.1
 Disposable now is not mixin.
 There is now CheckedDisposableMixin to access checkNotDisposed.
+
+# 0.7.1
+CheckedDisposableMixin now implements Disposable, no 'on' clause.
