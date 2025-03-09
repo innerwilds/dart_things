@@ -45,3 +45,7 @@ API changed. StartStopperAsync now returns ReadOnlyCompleter.
 
 # 0.5.2
 Refactoring
+
+# 0.6.1
+Disposable now is not mixin.
+There is now CheckedDisposableMixin to access checkNotDisposed.
