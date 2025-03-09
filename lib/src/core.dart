@@ -27,7 +27,7 @@ abstract class Disposable {
   }
 }
 
-mixin CheckedDisposableMixin on Disposable {
+mixin CheckedDisposableMixin implements Disposable {
   /// It throws [DisposedException] if this was disposed.
   ///
   /// [DisposedException] will be with [methodName] if it is not null.

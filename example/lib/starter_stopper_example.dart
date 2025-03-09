@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:dart_things/dart_things.dart';
 
-class MyController extends StarterStopperAsync {
+class MyController extends StarterStopperAsync with CheckedDisposableMixin implements Disposable {
   final StreamController<int> _controller = StreamController();
   Stream<int> get myInts => _controller.stream;
 
