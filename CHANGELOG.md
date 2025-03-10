@@ -52,3 +52,8 @@ There is now CheckedDisposableMixin to access checkNotDisposed.
 
 # 0.7.1
 CheckedDisposableMixin now implements Disposable, no 'on' clause.
+
+# 0.8.0
+Disposable now works differently.
+API changed.
+Initializer.checkInitialized now works differently.
