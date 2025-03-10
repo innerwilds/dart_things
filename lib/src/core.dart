@@ -4,38 +4,41 @@ import 'package:meta/meta.dart';
 
 import '_foundation.dart';
 
+final _disposedObjects = Expando<bool>('_disposedObjects');
+
 /// Something disposable.
 ///
-/// Use [CheckedDisposableMixin] for [CheckedDisposableMixin.checkNotDisposed].
-///
-/// Doesn't checks itself for [Initializer],
-/// because there is a cases when something disposable can be initialized in
-/// ctor.
+/// Use [disposeObject] to dispose this.
+/// Use [checkObjectDisposed] as guard to throw if object was disposed.
 abstract class Disposable {
-  bool _disposed = false;
-
-  /// Disposes object.
-  ///
-  /// Doesn't call FlutterMemoryAllocations, because it is for dart.
-  ///
-  /// After it calls the object must not be used. Guard public methods with:
-  /// ```dart
-  /// assert(checkNotDisposed('methodName'));
-  /// ```
-  void dispose() {
-    _disposed = true;
+  /// Marks a [disposable] as disposed.
+  @protected
+  static void disposeObject(Disposable disposable) {
+    _disposedObjects[disposable] = true;
   }
-}
 
-mixin CheckedDisposableMixin implements Disposable {
-  /// It throws [DisposedException] if this was disposed.
+  /// It throws [DisposedException] if [disposable] was disposed.
   ///
   /// [DisposedException] will be with [methodName] if it is not null.
   @protected
-  void checkNotDisposed([String? methodName]) {
-    if (_disposed) {
-      throw DisposedException(describeIdentity(this), methodName);
+  static bool checkObjectDisposed(Disposable disposable, [String? methodName]) {
+    if (_disposedObjects[disposable] ?? false) {
+      throw DisposedException(describeIdentity(disposable), methodName);
     }
+    return true;
+  }
+
+  /// Should dispose this using [Disposable.disposeObject].
+  ///
+  /// In public methods, to check whether this is disposed, use
+  /// [Disposable.checkObjectDisposed] with this as first argument.
+  /// For better release builds use [assert]:
+  /// ```dart
+  /// assert(Disposable.checkDisposed(this, 'myLovelyMethod'))
+  /// ```
+  @mustCallSuper
+  void dispose() {
+    Disposable.disposeObject(this);
   }
 }
 
@@ -134,15 +137,19 @@ abstract mixin class Initializer {
 
   /// Check whether this has been initialized.
   ///
-  /// Throws [AssertionError] if not.
+  /// Throws [StateError] if not.
   ///
-  /// Return true for use within [assert] statement.
+  /// Wrap in [assert] to exclude this method from code.
+  /// Returns true for use within [assert] statement.
   @protected
-  bool checkInitialized() {
-    assert(
-        _initialized,
-        '$_className has not been initialized. '
-        'Use ${describeIdentity(this)}.ensureInitialized.');
+  static bool checkInitialized(Initializer initializer, [String? methodName]) {
+    if (!initializer._initialized) {
+      final beforeUsingMethod =
+          methodName == null ? '' : ' before using $methodName';
+      throw StateError(
+          '${initializer._className} has not been initialized$beforeUsingMethod '
+          'Use ${initializer._className}.ensureInitialized.');
+    }
     return true;
   }
 }
@@ -213,7 +220,8 @@ abstract mixin class StarterStopperAsync {
     assert(_starterCompleter != null, 'Not started to be stopped');
     if (force) {
       _starterCompleter!._base.completeError(
-          StopForcedException._(describeIdentity(this), forceReason),);
+        StopForcedException._(describeIdentity(this), forceReason),
+      );
     } else {
       _starterCompleter!._base.complete();
     }

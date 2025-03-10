@@ -10,7 +10,7 @@ class MyController extends StarterStopperAsync with CheckedDisposableMixin imple
 
   ReadOnlyCompleter<void>? _futureStop;
 
-  Future<void> work() async {
+  Future<void> _work() async {
     while (isRunning) {
       final myInt = await _getRandomNumberFromInternet(_futureStop!);
       _controller.add(myInt);
@@ -62,8 +62,15 @@ class MyController extends StarterStopperAsync with CheckedDisposableMixin imple
 
   @override
   ReadOnlyCompleter<void> start() {
+    checkNotDisposed('start');
     _futureStop = super.start();
-    unawaited(work());
+    unawaited(_work());
     return _futureStop!;
+  }
+
+  @override
+  void dispose() {
+    checkNotDisposed('dispose');
+    stop(force: true);
   }
 }
