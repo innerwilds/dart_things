@@ -182,7 +182,16 @@ abstract mixin class StarterStopperAsync {
   ReadOnlyCompleter<void>? _starterCompleter;
 
   /// Is some operation is running now?
+  ///
+  /// For more control over current running status use [currentWorkCompleter].
   bool get isRunning => !(_starterCompleter?.isCompleted ?? true);
+
+  /// Completer, which completes when current work will be stopped.
+  ///
+  /// Returns null, if there is no running operation.
+  ///
+  /// @throws [StopForcedException], so be aware of this.
+  ReadOnlyCompleter<void>? get currentWorkCompleter => _starterCompleter;
 
   /// Starts something.
   ///
