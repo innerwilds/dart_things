@@ -57,3 +57,6 @@ CheckedDisposableMixin now implements Disposable, no 'on' clause.
 Disposable now works differently.
 API changed.
 Initializer.checkInitialized now works differently.
+
+# 0.8.1
+StarterStopperAsync work completer now exposed.
