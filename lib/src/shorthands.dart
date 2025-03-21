@@ -1,3 +1,5 @@
+import 'package:dart_things/coliseum.dart';
+
 /// Useful shorthand.
 ///
 /// Cases: (add some later)
@@ -43,3 +45,6 @@ bool itselfEmpty<T extends dynamic>(T self) => self.length == 0;
 
 /// Self is not null.
 bool itselfNotNull<T extends Object?>(T self) => self != null;
+
+/// Self is blank or empty.
+bool itselfNotBlankOrEmpty(String self) => self.isNotBlankOrEmpty;

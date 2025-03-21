@@ -228,9 +228,46 @@ extension ColiseumString on String {
       return string.characters.last.toUpperCase();
     })
         .replaceFirstMapped(
-        firstLetter, (match) => match.group(0)!.toLowerCase())
+            firstLetter, (match) => match.group(0)!.toLowerCase())
         .replaceAll(badEnd, '');
   }
+
+  /// Whether every character in string is in it's uppercase.
+  bool get isUpperCase => toUpperCase() == this;
+
+  /// Whether every character in string is in it's lowercase variant.
+  bool get isLowerCase => toLowerCase() == this;
+
+  /// Whether string starts with an upper case character.
+  bool get startsWithUpperCase => characters.first.isUpperCase;
+
+  /// Whether string starts with an lower case character.
+  bool get startsWithLowerCase => characters.first.isLowerCase;
+
+  /// Whether a string contains only digits.
+  bool get isOnlyDigits =>
+      isNotEmpty &&
+      characters.every((character) => const {
+            '0',
+            '1',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '8',
+            '9',
+          }.contains(character));
+
+  /// Whether this string is blank or empty.
+  bool get isBlankOrEmpty => isEmpty || trim().isEmpty;
+
+  /// Whether this string is not blank or empty.
+  bool get isNotBlankOrEmpty => isNotEmpty && trim().isNotEmpty;
+
+  /// Returns this string if this string is not blank, otherwise null.
+  String? get notBlankOrNull => isBlankOrEmpty ? null : this;
 
   /// Substring with safe end, so if end will be greater than [length],
   /// it will not throw.
