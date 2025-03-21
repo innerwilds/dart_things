@@ -60,3 +60,6 @@ Initializer.checkInitialized now works differently.
 
 # 0.8.1
 StarterStopperAsync work completer now exposed.
+
+# 0.8.2
+Something was added.
