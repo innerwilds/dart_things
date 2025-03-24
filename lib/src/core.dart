@@ -110,7 +110,7 @@ abstract mixin class Initializer {
     }
   }
 
-  /// Initialize something here.
+  /// Initializes something here.
   ///
   /// Will throw if there s already initialization in progress,
   /// or it was initialized using [ensureInitialized].
@@ -126,12 +126,14 @@ abstract mixin class Initializer {
   @protected
   @mustCallSuper
   FutureOr<void> initialize() {
-    assert(_isInitializingAssertionDisabled || !_initializing,
-        'There is already initialization in progress');
+    assert(
+      _isInitializingAssertionDisabled || !_initializing,
+      'There is already initialization in progress',
+    );
     assert(
         !_initialized,
         '$_className has been initialized already. '
-        'Use .ensureInitialized to initialize it safely.');
+        'Use $_className.ensureInitialized to initialize it safely.');
   }
 
   /// Check whether this has been initialized.
