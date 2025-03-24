@@ -101,9 +101,7 @@ abstract mixin class Initializer {
 
     try {
       _state = _initializingState;
-      final future = initialize();
-      assert(resetDoNotAssert());
-      await future;
+      await initialize();
       _state = _initializedState;
       _completer!.complete();
       _completer = null;
@@ -133,8 +131,13 @@ abstract mixin class Initializer {
   @protected
   @mustCallSuper
   FutureOr<void> initialize() {
-    assert(
-      _isInitializingAssertionDisabled || _state != _initializingState,
+    assert((){
+      if (_isInitializingAssertionDisabled) {
+        _isInitializingAssertionDisabled = false;
+        return true;
+      }
+      return _state != _initializingState;
+    }(),
       'There is already initialization in progress',
     );
     assert(

@@ -19,6 +19,11 @@ class ImplementedDisposable implements Disposable {
 }
 
 void main() {
+  test("Initializer.ensureInitialized doesn't throw",
+          () async {
+        final obj = _Initializer();
+        await expectLater(obj.ensureInitialized(), completes);
+      });
   test("Initializer ensureInitialized doesn't throw on repeated call",
           () async {
         final obj = _Initializer();
