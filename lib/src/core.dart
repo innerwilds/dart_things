@@ -20,6 +20,7 @@ abstract class Disposable {
   ///
   /// [DisposedException] will be with [methodName] if it is not null.
   @protected
+  @visibleForTesting
   static bool checkObjectDisposed(Disposable disposable, [String? methodName]) {
     if (_disposedObjects[disposable] ?? false) {
       throw DisposedException(describeIdentity(disposable), methodName);
@@ -100,7 +101,9 @@ abstract mixin class Initializer {
 
     try {
       _state = _initializingState;
-      await initialize();
+      final future = initialize();
+      assert(resetDoNotAssert());
+      await future;
       _state = _initializedState;
       _completer!.complete();
       _completer = null;
