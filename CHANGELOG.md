@@ -67,3 +67,6 @@ Something was added.
 # 0.9.0
 Initializer.ensureInitialized and .initializer now returns Future<void>.
 Also there is a fix for initializing assertion.
+
+# 0.9.1
+fix
