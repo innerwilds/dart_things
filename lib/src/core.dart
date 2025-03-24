@@ -55,10 +55,14 @@ abstract class Disposable {
 /// [Initializer] also checks itself for extending [Disposable],
 /// and guards [ensureInitialized] and [initialize].
 abstract mixin class Initializer {
+  static const _uninitializedState = 0;
+  static const _initializingState = 1;
+  static const _initializedState = 2;
+
   Completer<void>? _completer;
 
-  bool _initializing = false;
-  bool _initialized = false;
+  int _state = _uninitializedState;
+
   bool _isInitializingAssertionDisabled = false;
 
   String get _className => describeIdentity(this);
@@ -74,11 +78,11 @@ abstract mixin class Initializer {
   ///
   /// Returns future of initialization ending or nothing if initialized.
   Future<void> ensureInitialized() async {
-    if (_completer?.isCompleted ?? false) {
+    if (_state == _initializedState) {
       return;
     }
 
-    if (_initializing) {
+    if (_state == _initializingState) {
       return _completer!.future;
     }
 
@@ -95,18 +99,18 @@ abstract mixin class Initializer {
     }());
 
     try {
-      _initializing = true;
+      _state = _initializingState;
       await initialize();
-      _initialized = true;
+      _state = _initializedState;
       _completer!.complete();
+      _completer = null;
     } catch (e) {
-      _initialized = false;
+      _state = _uninitializedState;
       _completer!.completeError(e);
       _completer = null;
       rethrow;
     } finally {
       assert(resetDoNotAssert());
-      _initializing = false;
     }
   }
 
@@ -127,11 +131,11 @@ abstract mixin class Initializer {
   @mustCallSuper
   FutureOr<void> initialize() {
     assert(
-      _isInitializingAssertionDisabled || !_initializing,
+      _isInitializingAssertionDisabled || _state != _initializingState,
       'There is already initialization in progress',
     );
     assert(
-        !_initialized,
+        _state != _initializedState,
         '$_className has been initialized already. '
         'Use $_className.ensureInitialized to initialize it safely.');
   }
@@ -144,7 +148,7 @@ abstract mixin class Initializer {
   /// Returns true for use within [assert] statement.
   @protected
   static bool checkInitialized(Initializer initializer, [String? methodName]) {
-    if (!initializer._initialized) {
+    if (initializer._state != _initializedState) {
       final beforeUsingMethod =
           methodName == null ? '' : ' before using $methodName';
       throw StateError(
