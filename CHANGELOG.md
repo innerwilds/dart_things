@@ -63,3 +63,7 @@ StarterStopperAsync work completer now exposed.
 
 # 0.8.2
 Something was added.
+
+# 0.9.0
+Initializer.ensureInitialized and .initializer now returns Future<void>.
+Also there is a fix for initializing assertion.
