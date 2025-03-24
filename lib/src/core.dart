@@ -1,8 +1,7 @@
 import 'dart:async';
 
+import 'package:dart_things/src/_foundation.dart';
 import 'package:meta/meta.dart';
-
-import '_foundation.dart';
 
 final _disposedObjects = Expando<bool>('_disposedObjects');
 
