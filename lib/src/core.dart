@@ -59,7 +59,7 @@ abstract mixin class Initializer {
 
   bool _initializing = false;
   bool _initialized = false;
-  bool _doNotAssertInitializing = false;
+  bool _isInitializingAssertionDisabled = false;
 
   String get _className => describeIdentity(this);
 
@@ -73,7 +73,7 @@ abstract mixin class Initializer {
   /// The error of [initialize] will caught and rethrow.
   ///
   /// Returns future of initialization ending or nothing if initialized.
-  FutureOr<void> ensureInitialized() async {
+  Future<void> ensureInitialized() async {
     if (_completer?.isCompleted ?? false) {
       return;
     }
@@ -83,25 +83,25 @@ abstract mixin class Initializer {
     }
 
     bool resetDoNotAssert() {
-      _doNotAssertInitializing = false;
+      _isInitializingAssertionDisabled = false;
       return true;
     }
 
     _completer = Completer<void>();
+
     assert(() {
-      _doNotAssertInitializing = true;
+      _isInitializingAssertionDisabled = true;
       return true;
     }());
 
     try {
       _initializing = true;
       await initialize();
-      assert(resetDoNotAssert());
       _initialized = true;
       _completer!.complete();
     } catch (e) {
       _initialized = false;
-      _completer!.completeError(e, StackTrace.current);
+      _completer!.completeError(e);
       _completer = null;
       rethrow;
     } finally {
@@ -126,7 +126,7 @@ abstract mixin class Initializer {
   @protected
   @mustCallSuper
   FutureOr<void> initialize() {
-    assert(_doNotAssertInitializing || !_initializing,
+    assert(_isInitializingAssertionDisabled || !_initializing,
         'There is already initialization in progress');
     assert(
         !_initialized,
